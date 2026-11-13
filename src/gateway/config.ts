@@ -10,6 +10,7 @@
 
 import { createAgentFlow, type AgentFlowLimits, type AgentFlowSinkPolicy } from '../agent.js';
 import type { RedactOptions } from '../index.js';
+import { requireTransformSecret } from '../transform-secret.js';
 
 export interface ListenConfig {
   host: string;
@@ -264,6 +265,22 @@ export function resolveConfig(...layers: Array<RawConfig | undefined>): GatewayC
   for (const route of routes) {
     if (seen.has(route.prefix)) throw new GatewayConfigError(`duplicate route prefix ${JSON.stringify(route.prefix)}`);
     seen.add(route.prefix);
+  }
+  // Fail at startup rather than on the first protected request: a keyed mode
+  // without a key would emit public fingerprints the whole time the gateway
+  // stayed up. Route policy is layered over the gateway-wide policy, matching
+  // the runtime in server.ts.
+  const validatePolicy = (policy: RedactOptions, where: string): void => {
+    try {
+      requireTransformSecret(policy);
+    } catch (error) {
+      throw new GatewayConfigError(`${where}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+  const globalPolicy = raw.policy ?? DEFAULTS.policy;
+  validatePolicy(globalPolicy, 'policy');
+  for (const route of routes) {
+    validatePolicy({ ...globalPolicy, ...route.policy }, `route ${JSON.stringify(route.prefix)} policy`);
   }
   // Longest prefix first, so `/openai/v1` wins over `/openai`.
   routes.sort((a, b) => b.prefix.length - a.prefix.length);

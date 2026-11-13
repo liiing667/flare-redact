@@ -6,6 +6,7 @@ import {
   type RedactOptions,
 } from './engine.js';
 import { mapGraph } from './graph.js';
+import { requireTransformSecret } from './transform-secret.js';
 
 export interface Vault {
   redact<T>(input: T): T;
@@ -116,6 +117,7 @@ function redactGraph(
  * round trip — send the redacted text to an LLM, then restore its answer.
  */
 export function createVault(opts: VaultOptions = {}): Vault {
+  requireTransformSecret(opts);
   const dets = resolveDetectors(opts);
   const allow = allowMatcher(opts);
   const matchKey = keyMatcher(opts);

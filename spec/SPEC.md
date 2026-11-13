@@ -310,7 +310,14 @@ detector, and takes precedence over `mode`.
 ## 8. Keyed transforms
 
 All keyed output derives from HMAC-SHA256 with the host's `transformSecret`. An
-empty secret is an **error**, not a silent fallback to unkeyed output.
+empty secret is an **error**, not a silent fallback to unkeyed output. Every
+entry point — library, vault, stream, CLI and gateway — raises the same
+fail-closed error for `hash`, `pseudonym`, `surrogate` and the deprecated `fpe`
+alias: in JavaScript it is `TransformSecretError` with
+`code = 'ERR_TRANSFORM_SECRET'` and the message "A non-empty transformSecret is
+required for hash, pseudonym and surrogate modes." The check runs when the
+policy is compiled, before any value is processed. `mask` and `label` are not
+keyed and require no secret.
 
 ```
 deriveBytes(secret, context, n):

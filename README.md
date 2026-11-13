@@ -398,6 +398,13 @@ fall back to a public unsalted fingerprint. `hash` is useful for correlation,
 synthetic values such as reserved-domain emails and Luhn-valid card numbers.
 Use a separate secret per environment or correlation domain.
 
+A missing or empty key fails closed everywhere through the same error:
+`TransformSecretError` with `code: 'ERR_TRANSFORM_SECRET'`. The check runs when
+the policy or vault is compiled (before any value is processed), and is shared
+by the library, `redactStream()`, the CLI — which exits with status 2 — and the
+gateway, which refuses to start. `mask` and `label` need no key and are
+unaffected.
+
 `pseudonym` is deliberately **not** described as format-preserving encryption.
 It is non-reversible pseudonymization, not NIST FF1. The old `fpe` name remains
 as a compatibility alias but is deprecated.

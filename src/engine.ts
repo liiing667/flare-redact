@@ -1,6 +1,7 @@
 import { DETECTORS, SENSITIVE_KEY_RE, type Detector } from './detectors.js';
 import { hmacFingerprint } from './crypto.js';
 import { pseudonymize, surrogate } from './transforms.js';
+import { requireTransformSecret } from './transform-secret.js';
 import { MULTILANG_KEY_SET } from './i18n.js';
 import { buildTermsDetector, type TermSpec } from './terms.js';
 import { secretProbability } from './ml.js';
@@ -174,7 +175,7 @@ export function allowMatcher(opts: RedactOptions): (value: string) => boolean {
 }
 
 export function makeReplacer(opts: RedactOptions): Replace {
-  const secret = opts.transformSecret ?? opts.hashSalt ?? '';
+  const secret = requireTransformSecret(opts);
   const mask = opts.mask;
   const mode = opts.mode ?? 'mask';
   if (typeof mask === 'string') return () => mask;

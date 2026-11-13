@@ -39,6 +39,7 @@ import {
   type GatewayConfig,
   type RouteConfig,
 } from './config.js';
+import { TransformSecretError } from '../transform-secret.js';
 import {
   isEventStream,
   parsePath,
@@ -662,9 +663,19 @@ export function createGateway(config: GatewayConfig): Gateway {
         metrics.request(isApi ? 'api' : (matchRoute(config.routes, pathname)?.name ?? 'none'), status);
       })
       .catch((error: unknown) => {
-        const status = error instanceof HttpError ? error.status : 500;
-        const code = error instanceof HttpError ? error.code : 'ERR_INTERNAL';
-        const message = error instanceof HttpError ? error.message : 'the gateway failed to handle this request';
+        const status = error instanceof HttpError
+          ? error.status
+          : error instanceof TransformSecretError
+            ? 400
+            : 500;
+        const code = error instanceof HttpError
+          ? error.code
+          : error instanceof TransformSecretError
+            ? error.code
+            : 'ERR_INTERNAL';
+        const message = error instanceof HttpError || error instanceof TransformSecretError
+          ? error.message
+          : 'the gateway failed to handle this request';
         if (status >= 500) {
           metrics.errors++;
           logger.error({ msg: 'request failed', path: pathname, status, reason: (error as Error)?.message });

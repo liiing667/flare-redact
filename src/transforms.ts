@@ -1,5 +1,6 @@
 import { deriveBytes, hmacFingerprint } from './crypto.js';
 import type { Detector } from './detectors.js';
+import { assertTransformSecret } from './transform-secret.js';
 
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -21,6 +22,7 @@ function alphabetFor(ch: string): string | undefined {
  * implement NIST FF1.
  */
 export function pseudonymize(value: string, secret: string): string {
+  assertTransformSecret(secret);
   const bytes = deriveBytes(secret, `pseudonym:${value}`, value.length);
   let out = '';
   for (let i = 0; i < value.length; i++) {
@@ -86,6 +88,7 @@ function addressSurrogate(value: string, secret: string): string {
 
 /** Produce a deterministic, type-consistent synthetic value for local test data. */
 export function surrogate(value: string, detector: Detector, secret: string): string {
+  assertTransformSecret(secret);
   switch (detector.id) {
     case 'email': return emailSurrogate(value, secret);
     case 'credit_card': return cardSurrogate(value, secret);

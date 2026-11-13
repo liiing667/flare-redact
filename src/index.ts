@@ -15,6 +15,14 @@ import {
 
 export type { Mode, Risk, Finding, RedactOptions, SemanticFinding, SemanticProvider } from './engine.js';
 export { FlareRedactError, RedactionLimitError } from './engine.js';
+export {
+  TransformSecretError,
+  KEYED_MODES,
+  requireTransformSecret,
+  assertTransformSecret,
+  isKeyedMode,
+  TRANSFORM_SECRET_MESSAGE,
+} from './transform-secret.js';
 export type { Detector } from './detectors.js';
 export {
   DETECTORS,

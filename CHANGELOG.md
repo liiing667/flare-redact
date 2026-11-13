@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+- Keyed transforms (`hash`, `pseudonym`, `surrogate` and the deprecated `fpe`
+  alias) now fail closed through one shared gate. A missing or empty
+  `transformSecret` (or deprecated `hashSalt`) raises a single
+  `TransformSecretError` (`code: 'ERR_TRANSFORM_SECRET'`) with the message
+  "A non-empty transformSecret is required for hash, pseudonym and surrogate
+  modes." instead of producing stable values under an empty key that can be
+  correlated across logs and reversed with a dictionary.
+- The check runs when a policy or vault is compiled, so even input with no
+  detected finding is refused. The library, `compilePolicy()`, `createVault()`,
+  `redactStream()`, the standalone `pseudonymize()`/`surrogate()`/
+  `hmacFingerprint()` primitives, the CLI (exit code 2) and the gateway
+  (startup `GatewayConfigError`, including per-route policies) all enforce it.
+- `mask` and `label` modes remain keyless, and keyed modes with a configured
+  secret produce byte-identical output to before.
+
 ## 1.7.0 (2026-11-06)
 
 ### Security: printed values and broken PEM blocks (GHSA-2jx3-6xv8-798v)
