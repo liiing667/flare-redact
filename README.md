@@ -870,7 +870,10 @@ and `redactStream` too.
 
 Pipe any log stream through it. Secrets may be split across chunks, and bounded
 multiline PEM private keys are masked as one record. Unterminated private keys
-fail closed instead of leaking their remaining bytes.
+fail closed instead of leaking their remaining bytes. Ordinary lines,
+credentials split across chunks, and PEM records share one byte budget
+(`maxRecordLength`, defaulting to `limits.maxInputLength` or 16 MiB); a record
+over the budget fails the stream closed without emitting the pending content.
 
 ```js
 import { redactStream } from 'flare-redact/stream';
@@ -1151,7 +1154,7 @@ flow.authorizeForSink(sink, call)               // atomic restore or AgentFlowBl
 flow.restoreForApp(value) / revokeSource(source) / snapshot() / reset()
 
 // from 'flare-redact/stream'
-redactStream(opts?): Transform                  // chunk-safe + bounded multiline PEM redaction
+redactStream(opts?): Transform                  // chunk-safe; one byte budget for lines, split secrets, and PEM
 
 // opts
 // {
